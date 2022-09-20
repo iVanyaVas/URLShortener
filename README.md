@@ -9,3 +9,9 @@
 ## HTTP API
 
 ## Models
+
+**URL** :
+
+- Id
+- Origin URL
+- Shortened URL
