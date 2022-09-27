@@ -8,6 +8,15 @@
 
 ## HTTP API
 
+**Test cases** :
+
+- PUT(api/url BODY = {origin_url + shortened_url}) => save the record to database
+- GET(api/url/{Id}) => gets the record by Id
+
+**Work cases** :
+
+- In progress
+
 ## Models
 
 **URL** :
