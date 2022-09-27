@@ -14,19 +14,16 @@ using UrlShorteneer.Contracts;
 
 using Xunit;
 using System.IO;
+using UrlShorteneer.UnitTests.Helpers;
 
 public class CreateUrlCommandHandlerTest : IDisposable
 {
-    private readonly string tempFile;
+    private readonly string _tempFile;
     private readonly IRequestHandler<CreateUrlCommand, CreateUrlCommandResult> _handler;
     private readonly UrlDbContext _dbContext;
     public CreateUrlCommandHandlerTest()
     {
-        tempFile = Path.GetTempFileName();
-        var options = new DbContextOptionsBuilder<UrlDbContext>().UseSqlite($"Data Source={tempFile};").Options;
-
-        _dbContext = new UrlDbContext(options);
-        _dbContext.Database.Migrate();
+        _dbContext = DbContextHelper.CreateTestDb(ref _tempFile);
         _handler = new CreateUrlCommandHandler(_dbContext);
     }
 
@@ -35,7 +32,7 @@ public class CreateUrlCommandHandlerTest : IDisposable
     {
         //Arrange
         //Act
-        var result = File.Exists(tempFile);
+        var result = File.Exists(_tempFile);
         //Assert
         result.ShouldBeTrue();
     }
@@ -58,12 +55,12 @@ public class CreateUrlCommandHandlerTest : IDisposable
 
         // Assert
         result.ShouldNotBeNull();
-        result.Url.ShouldNotBeNull();
-        result.Url.OriginUrl.ShouldNotBeNullOrWhiteSpace();
-        result.Url.ShortenedUrl.ShouldNotBeNullOrWhiteSpace();
-        result.Url.OriginUrl.ShouldBe(originUrl);
-        result.Url.ShortenedUrl.ShouldBe(shortenedUrl);
-        result.Url.Id.ShouldBeGreaterThan(0);
+        result.UrlResult.ShouldNotBeNull();
+        result.UrlResult.OriginUrl.ShouldNotBeNullOrWhiteSpace();
+        result.UrlResult.ShortenedUrl.ShouldNotBeNullOrWhiteSpace();
+        result.UrlResult.OriginUrl.ShouldBe(originUrl);
+        result.UrlResult.ShortenedUrl.ShouldBe(shortenedUrl);
+        result.UrlResult.Id.ShouldBeGreaterThan(0);
     }
 
     public void Dispose()

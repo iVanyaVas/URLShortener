@@ -16,7 +16,7 @@ public class CreateUrlCommand : IRequest<CreateUrlCommandResult>
 
 public class CreateUrlCommandResult
 {
-    public Url Url { get; init; }
+    public Url UrlResult { get; init; }
 }
 
 public class CreateUrlCommandHandler : IRequestHandler<CreateUrlCommand, CreateUrlCommandResult>
@@ -42,7 +42,7 @@ public class CreateUrlCommandHandler : IRequestHandler<CreateUrlCommand, CreateU
 
         return new CreateUrlCommandResult
         {
-            Url= url
+            UrlResult = url
         };
     }
 }
