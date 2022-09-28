@@ -12,34 +12,34 @@ using UrlShorteneer.Domain.Exceptions;
 
 namespace UrlShorteneer.Domain.Queries;
 
-public class UrlQuery : IRequest<UrlQueryResult>
+public class UrlQueryTest : IRequest<UrlQueryTestResult>
 {
     public int Id { get; init; }
 }
 
-public class UrlQueryResult
+public class UrlQueryTestResult
 {
     public Url UrlResult { get; init; }
 }
 
-public class UrlQueryHandler : IRequestHandler<UrlQuery, UrlQueryResult>
+public class UrlQueryTestHandler : IRequestHandler<UrlQueryTest, UrlQueryTestResult>
 {
     private readonly UrlDbContext _dbContext;
 
-    public UrlQueryHandler(UrlDbContext dbContext)
+    public UrlQueryTestHandler(UrlDbContext dbContext)
     {
         _dbContext = dbContext;
     }
-    public async Task<UrlQueryResult> Handle(UrlQuery request, CancellationToken cancellationToken)
+    public async Task<UrlQueryTestResult> Handle(UrlQueryTest request, CancellationToken cancellationToken)
     {
         var url = await _dbContext.Urls.SingleOrDefaultAsync(u => u.Id == request.Id, cancellationToken);
 
         if (url == null)
         {
-            throw new NotFoundException(ErrorCode.NotFoundError, $"Url with this {request.Id} Not Found");
+            throw new NotFoundException(ErrorCode.NotFoundError, $"Url with this {request.Id} ID Not Found");
         }
 
-        return new UrlQueryResult
+        return new UrlQueryTestResult
         {
             UrlResult = url
         };

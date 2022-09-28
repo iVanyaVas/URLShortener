@@ -12,7 +12,6 @@ internal static class DbContextHelper
     {
         tempFile = Path.GetTempFileName();
         return CreateTestDb($"Data Source={tempFile}");
-
     }
 
     public static UrlDbContext CreateTestDb(string connectionString)

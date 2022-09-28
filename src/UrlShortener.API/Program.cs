@@ -21,7 +21,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 builder.Services.Configure<AppConfiguration>(builder.Configuration);
-builder.Services.AddMediatR(typeof(CreateUrlCommand));
+builder.Services.AddMediatR(typeof(CreateUrlCommandTest));
 builder.Services.AddDbContext<UrlDbContext>((serviceProvider, options) =>
 {
     var configuration = serviceProvider.GetRequiredService<IOptionsMonitor<AppConfiguration>>();
