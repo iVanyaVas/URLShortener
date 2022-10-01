@@ -1,68 +1,129 @@
 using System;
+using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 
 using MediatR;
 
-using Microsoft.EntityFrameworkCore;
-
 using Shouldly;
 
+using UrlShorteneer.Contracts.Database;
 using UrlShorteneer.Domain.Database;
+using UrlShorteneer.Domain.Exceptions;
+
 using UrlShortener.Domain.Commands;
-using UrlShorteneer.Contracts;
 
 using Xunit;
-using System.IO;
-using UrlShorteneer.UnitTests.Helpers;
+
+namespace UrlShorteneer.UnitTests.Commands;
+
 
 public class CreateUrlCommandHandlerUnitTests : IDisposable
 {
-    private readonly string _tempFile;
-    private readonly IRequestHandler<CreateUrlCommandTest, CreateUrlCommandTestResult> _handler;
+
+    private readonly IRequestHandler<CreateUrlCommand, CreateUrlCommandResult> _handler;
     private readonly UrlDbContext _dbContext;
+
     public CreateUrlCommandHandlerUnitTests()
     {
-        _dbContext = DbContextHelper.CreateTestDb(ref _tempFile);
-        _handler = new UrlShortener.Domain.Commands.CreateUrlCommandTestHandler(_dbContext);
+        _dbContext = Helpers.DbContextHelper.CreateTestDb();
+        _handler = new CreateUrlCommandHandler(_dbContext);
+
     }
 
+
     [Fact]
-    public void TempFileShouldExist()
+    public async Task HandlerShouldReturnGeneratedShortUrl()
     {
         //Arrange
+        var originUrl = "https://vsetop.org/";
+        var command = new CreateUrlCommand
+        {
+            OriginUrl = originUrl
+        };
+
         //Act
-        var result = File.Exists(_tempFile);
+        var result = await _handler.Handle(command, CancellationToken.None);
         //Assert
-        result.ShouldBeTrue();
+
+        result.ShouldNotBeNull();
+        result.ShortenedUrl.ShouldNotBeNull();
+        result.Id.ShouldBeGreaterThan(0);
+    }
+
+        [Fact]
+    public async Task HandlerShouldReturnExistRecord()
+    {
+        //Arrange
+        var url = new Url
+        {
+          OriginUrl =  "https://www.google.com/",
+          ShortenedUrl = "localhost:5246/S6876"
+        };
+
+       await _dbContext.AddAsync(url);
+       await _dbContext.SaveChangesAsync();
+
+        var command = new CreateUrlCommand
+        {
+            OriginUrl = url.OriginUrl
+        };
+
+        //Act
+        var result = await _handler.Handle(command, CancellationToken.None);
+        //Assert
+
+        result.ShouldNotBeNull();
+        result.ShortenedUrl.ShouldNotBeNull();
+        result.Id.ShouldBeGreaterThan(0);
+        result.ShortenedUrl.ShouldBe("localhost:5246/S6876");
+    }
+
+
+
+    [Fact]
+    public async Task HandlerShouldThrowException()
+    {
+        //Arrange
+        var originUrl = Guid.NewGuid().ToString();
+        var command = new CreateUrlCommand
+        {
+            OriginUrl = originUrl
+        };
+
+        //Act
+        try
+        {
+            var result = await _handler.Handle(command, CancellationToken.None);
+        }
+        catch (BadRequestException br) when (br.ErrorCode == Contracts.Http.ErrorCode.BadRequestError)
+        {
+            //Assert
+        }
+
     }
 
     [Fact]
-    public async Task HandleShouldCreateUrlAndCheckTheProperties()
+    public async Task HandlerShouldThrowExceptionForNullString()
     {
-
-        // Arrange
-        var originUrl = Guid.NewGuid().ToString();
-        var shortenedUrl = Guid.NewGuid().ToString();
-
-        var command = new CreateUrlCommandTest
+        //Arrange
+        string originUrl = null;
+        var command = new CreateUrlCommand
         {
-            OriginUrl = originUrl,
-            ShortenedUrl = shortenedUrl
+            OriginUrl = originUrl
         };
-        // Act
-        var result = await _handler.Handle(command, CancellationToken.None);
 
-        // Assert
-        result.ShouldNotBeNull();
-        result.UrlResult.ShouldNotBeNull();
-        result.UrlResult.OriginUrl.ShouldNotBeNullOrWhiteSpace();
-        result.UrlResult.ShortenedUrl.ShouldNotBeNullOrWhiteSpace();
-        result.UrlResult.OriginUrl.ShouldBe(originUrl);
-        result.UrlResult.ShortenedUrl.ShouldBe(shortenedUrl);
-        result.UrlResult.Id.ShouldBeGreaterThan(0);
+        //Act
+        try
+        {
+            var result = await _handler.Handle(command, CancellationToken.None);
+        }
+        catch (BadRequestException br) when (br.ErrorCode == Contracts.Http.ErrorCode.BadRequestError)
+        {
+            //Assert
+        }
+
     }
-
     public void Dispose()
     {
         _dbContext.Database.EnsureDeleted();

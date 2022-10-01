@@ -7,13 +7,8 @@ public class NotFoundException : Exception
 {
     public ErrorCode ErrorCode{get;}
 
-    public NotFoundException(ErrorCode errorCode) : this(errorCode, null)
+    public NotFoundException(string message) : base(message)
     {
-        ErrorCode = errorCode;
-    }
-
-    public NotFoundException(ErrorCode errorCode, string message) : base(message)
-    {
-        ErrorCode = errorCode;
+        ErrorCode = ErrorCode.NotFoundError;
     }
 }

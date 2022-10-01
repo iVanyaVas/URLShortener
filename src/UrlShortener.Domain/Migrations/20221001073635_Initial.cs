@@ -26,6 +26,13 @@ namespace UrlShortener.Domain.Migrations
                 {
                     table.PrimaryKey("PK_tbl_urls", x => x.id);
                 });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_tbl_urls_origin_url",
+                schema: "public",
+                table: "tbl_urls",
+                column: "origin_url",
+                unique: true);
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)

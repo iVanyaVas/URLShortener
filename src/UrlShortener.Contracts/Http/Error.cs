@@ -2,7 +2,8 @@ namespace UrlShorteneer.Contracts.Http;
 
 public enum ErrorCode
 {
-    NotFoundError = 40400,
+    BadRequestError = 40001,
+    NotFoundError = 40401,
     InternalServerError = 50000,
     DbFailureError = 50001
 }

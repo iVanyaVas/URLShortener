@@ -8,9 +8,9 @@ namespace UrlShorteneer.UnitTests.Helpers;
 
 internal static class DbContextHelper
 {
-    public static UrlDbContext CreateTestDb(ref string tempFile)
+    public static UrlDbContext CreateTestDb()
     {
-        tempFile = Path.GetTempFileName();
+        var tempFile = Path.GetTempFileName();
         return CreateTestDb($"Data Source={tempFile}");
     }
 

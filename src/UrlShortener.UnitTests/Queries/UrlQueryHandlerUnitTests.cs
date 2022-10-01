@@ -20,28 +20,17 @@ namespace UrlShorteneer.UnitTests.Queries;
 
 public class UrlQueryHandlerUnitTests : IDisposable
 {
-    private readonly string _tempFile;
     private readonly UrlDbContext _dbContext;
-    private readonly IRequestHandler<UrlQueryTest, UrlQueryTestResult> _handler;
+    private readonly IRequestHandler<UrlQuery, UrlQueryResult> _handler;
     public UrlQueryHandlerUnitTests()
     {
-        _dbContext = DbContextHelper.CreateTestDb(ref _tempFile);
-        _handler = new UrlQueryTestHandler(_dbContext);
-    }
-    [Fact]
-    public void TempFileShouldExist()
-    {
-        //Arrange
-        //Act
-        var result = File.Exists(_tempFile);
-        //Assert
-        result.ShouldBeTrue();
+        _dbContext = DbContextHelper.CreateTestDb();
+        _handler = new UrlQueryHandler(_dbContext);
     }
 
     [Fact]
     public async Task QueryHandleShouldReturnUrl()
     {
-        string tempFile = _tempFile;
         var dbContext = DbContextHelper.CreateTestDb(_dbContext.Database.GetDbConnection().ConnectionString);
         //Arrange
         var url = new Url
@@ -53,7 +42,7 @@ public class UrlQueryHandlerUnitTests : IDisposable
         await dbContext.AddAsync(url);
         await dbContext.SaveChangesAsync();
 
-        var query = new UrlQueryTest
+        var query = new UrlQuery
         {
             Id = url.Id
         };
@@ -74,7 +63,7 @@ public class UrlQueryHandlerUnitTests : IDisposable
     {
         //Arrange
         var urlId = -1;
-        var query = new UrlQueryTest
+        var query = new UrlQuery
         {
             Id = urlId
         };

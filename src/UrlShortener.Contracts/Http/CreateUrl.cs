@@ -2,18 +2,18 @@ using System.ComponentModel.DataAnnotations;
 
 namespace UrlShorteneer.Contracts.Http;
 
-public class CreateUrlTestRequest
+public class CreateUrlRequest
 {
     [Required]
     [MaxLength(2048)]
     public string OriginUrl { get; init; }
-    [Required]
-    [MaxLength(1024)]
-    public string ShortenedUrl { get; init; }
+
 }
 
-public class CreateUrlTestResponse
+public class CreateUrlResponse
 {
     public int Id { get; init; }
+
+    public string ShortenedUrl { get; init; }
 
 }

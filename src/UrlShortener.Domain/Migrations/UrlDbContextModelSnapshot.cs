@@ -16,7 +16,7 @@ namespace UrlShortener.Domain.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "6.0.9")
+                .HasAnnotation("ProductVersion", "6.0.7")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
@@ -43,6 +43,9 @@ namespace UrlShortener.Domain.Migrations
                         .HasColumnName("shortened_url");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("OriginUrl")
+                        .IsUnique();
 
                     b.ToTable("tbl_urls", "public");
                 });
