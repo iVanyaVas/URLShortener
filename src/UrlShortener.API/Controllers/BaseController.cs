@@ -61,7 +61,7 @@ public class BaseController : ControllerBase
         }
     }
 
-    public IActionResult ToActionResult (Error errorResponse)
+    protected IActionResult ToActionResult (Error errorResponse)
     {
         return StatusCode((int)errorResponse.Code/100,errorResponse);
     }

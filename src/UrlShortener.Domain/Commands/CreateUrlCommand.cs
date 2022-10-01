@@ -26,13 +26,13 @@ public class CreateUrlCommandResult
     public string ShortenedUrl { get; init; }
 }
 
-public class CreateUrlCommandHandler : IRequestHandler<CreateUrlCommand, CreateUrlCommandResult>
+internal class CreateUrlCommandHandler : IRequestHandler<CreateUrlCommand, CreateUrlCommandResult>
 {
 
     private readonly UrlDbContext _dbContext;
     private readonly ILogger<CreateUrlCommandHandler> _logger;
 
-    internal CreateUrlCommandHandler(UrlDbContext dbContext, ILogger<CreateUrlCommandHandler> logger)
+    public CreateUrlCommandHandler(UrlDbContext dbContext, ILogger<CreateUrlCommandHandler> logger)
     {
         _dbContext = dbContext;
         _logger = logger;

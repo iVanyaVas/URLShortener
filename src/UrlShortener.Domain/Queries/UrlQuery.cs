@@ -23,12 +23,12 @@ public class UrlQueryResult
     public Url UrlResult { get; init; }
 }
 
-public class UrlQueryHandler : IRequestHandler<UrlQuery, UrlQueryResult>
+internal class UrlQueryHandler : IRequestHandler<UrlQuery, UrlQueryResult>
 {
     private readonly UrlDbContext _dbContext;
     private readonly ILogger<UrlQueryHandler> _logger;
 
-    internal UrlQueryHandler(UrlDbContext dbContext, ILogger<UrlQueryHandler> logger)
+    public UrlQueryHandler(UrlDbContext dbContext, ILogger<UrlQueryHandler> logger)
     {
         _dbContext = dbContext;
         _logger = logger;
