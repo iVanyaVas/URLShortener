@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using MediatR;
 
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 using UrlShorteneer.Contracts.Database;
 using UrlShorteneer.Domain.Database;
@@ -29,14 +30,18 @@ public class CreateUrlCommandHandler : IRequestHandler<CreateUrlCommand, CreateU
 {
 
     private readonly UrlDbContext _dbContext;
+    private readonly ILogger<CreateUrlCommandHandler> _logger;
 
-    public CreateUrlCommandHandler(UrlDbContext dbContext)
+    internal CreateUrlCommandHandler(UrlDbContext dbContext, ILogger<CreateUrlCommandHandler> logger)
     {
         _dbContext = dbContext;
+        _logger = logger;
     }
 
     public async Task<CreateUrlCommandResult> Handle(CreateUrlCommand request, CancellationToken cancellationToken = default)
     {
+        _logger.LogDebug("Excecution start : CreateUrlCommand, with Url = {OriginUrl}", request.OriginUrl);
+
 
         var urlCheck = await _dbContext.Urls.FirstOrDefaultAsync(u => u.OriginUrl == request.OriginUrl, cancellationToken);
         
@@ -61,6 +66,8 @@ public class CreateUrlCommandHandler : IRequestHandler<CreateUrlCommand, CreateU
 
         await _dbContext.AddAsync(url, cancellationToken);
         await _dbContext.SaveChangesAsync(cancellationToken);
+
+        _logger.LogInformation("Create new Url with id = {Id}", url.Id);
 
         return new CreateUrlCommandResult
         {

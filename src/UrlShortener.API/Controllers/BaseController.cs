@@ -3,6 +3,7 @@ using System.Threading;
 using System.Threading.Tasks;
 
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 
 using Npgsql;
 
@@ -13,6 +14,12 @@ namespace UrlShorteneer.API.Controllers;
 
 public class BaseController : ControllerBase
 {
+    private readonly ILogger _logger;
+
+    protected BaseController(ILogger logger)
+    {
+        _logger = logger;
+    }
     protected async Task<IActionResult> SafeExecute(Func<Task<IActionResult>> action, CancellationToken cancellationToken)
     {
         try
@@ -22,6 +29,7 @@ public class BaseController : ControllerBase
         
         catch(NotFoundException nf)
         {
+             _logger.LogError(nf, "NotFoundException raised");
                var response = new Error
             {
                 Code = ErrorCode.NotFoundError,
@@ -32,6 +40,7 @@ public class BaseController : ControllerBase
         }
         catch (InvalidOperationException ioe) when (ioe.InnerException is NpgsqlException)
         {
+             _logger.LogError(ioe, "Db exception raised");
             var response = new Error
             {
                 Code = ErrorCode.DbFailureError,
@@ -40,8 +49,9 @@ public class BaseController : ControllerBase
 
             return ToActionResult(response);
         }
-        catch (Exception)
+        catch (Exception e)
         {
+            _logger.LogError(e, "Unhandeled exception raised");
             var response = new Error
             {
                 Code = ErrorCode.InternalServerError,
@@ -51,7 +61,7 @@ public class BaseController : ControllerBase
         }
     }
 
-    private IActionResult ToActionResult (Error errorResponse)
+    public IActionResult ToActionResult (Error errorResponse)
     {
         return StatusCode((int)errorResponse.Code/100,errorResponse);
     }

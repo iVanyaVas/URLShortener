@@ -15,6 +15,9 @@ using UrlShorteneer.Domain.Queries;
 using UrlShorteneer.UnitTests.Helpers;
 
 using Xunit;
+using Moq;
+using Microsoft.Extensions.Logging;
+using UrlShortener.Domain.Commands;
 
 namespace UrlShorteneer.UnitTests.Queries;
 
@@ -25,7 +28,7 @@ public class UrlQueryHandlerUnitTests : IDisposable
     public UrlQueryHandlerUnitTests()
     {
         _dbContext = DbContextHelper.CreateTestDb();
-        _handler = new UrlQueryHandler(_dbContext);
+        _handler = new UrlQueryHandler(_dbContext, new Mock<ILogger<UrlQueryHandler>>().Object);
     }
 
     [Fact]

@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using MediatR;
 
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 using UrlShorteneer.Contracts.Database;
 using UrlShorteneer.Contracts.Http;
@@ -25,20 +26,25 @@ public class UrlQueryResult
 public class UrlQueryHandler : IRequestHandler<UrlQuery, UrlQueryResult>
 {
     private readonly UrlDbContext _dbContext;
+    private readonly ILogger<UrlQueryHandler> _logger;
 
-    public UrlQueryHandler(UrlDbContext dbContext)
+    internal UrlQueryHandler(UrlDbContext dbContext, ILogger<UrlQueryHandler> logger)
     {
         _dbContext = dbContext;
+        _logger = logger;
     }
     public async Task<UrlQueryResult> Handle(UrlQuery request, CancellationToken cancellationToken)
     {
+        _logger.LogDebug("Excecution start : UrlQueryHandler, with Id = {Id}",request.Id);
         var url = await _dbContext.Urls.SingleOrDefaultAsync(u => u.Id == request.Id, cancellationToken);
 
         if (url == null)
         {
+            _logger.LogInformation("Url Id {Id} Not Found", request.Id);
             throw new NotFoundException($"Url with this {request.Id} ID Not Found");
         }
 
+        _logger.LogInformation("Url with Id {Id} Found",request.Id);
         return new UrlQueryResult
         {
             UrlResult = url

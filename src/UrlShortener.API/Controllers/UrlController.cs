@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using MediatR;
 
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 
 using UrlShorteneer.Contracts.Http;
 using UrlShorteneer.Domain.Queries;
@@ -18,7 +19,7 @@ public class UrlController : BaseController
 {
     private readonly IMediator _mediator;
 
-    public UrlController(IMediator mediator)
+    public UrlController(IMediator mediator, ILogger<UrlController> logger) : base(logger)
     {
         _mediator = mediator;
     }
@@ -29,9 +30,6 @@ public class UrlController : BaseController
     /// <param name="id"> Url id</param>
     /// <param name="cancellationToken"> Cancellation Token</param>
     /// <returns>Redirect to Origin Url</returns>
-    /// <response code = "302"> Redirect to origin url</response>
-    /// <response code = "404">Url Not Found</response>
-    /// <response code = "500">Internal Server Error</response>
     [HttpGet("{id}")]
     [ProducesResponseType(typeof(string), 302)]
     [ProducesResponseType(typeof(Error), 404)]
@@ -53,16 +51,24 @@ public class UrlController : BaseController
     }
 
     /// <summary>
-    /// 
+    /// Input Origin Url and Returns Shortened url
     /// </summary>
-    /// <param name="request"></param>
-    /// <param name="cancellationToken"></param>
-    /// <returns></returns>
+    /// <param name="request"> Origin Url</param>
+    /// <param name="cancellationToken">Cancellation Token</param>
+    /// <returns> Short Url</returns>
     [HttpPut]
     public Task<IActionResult> CreateUrl([FromBody] CreateUrlRequest request, CancellationToken cancellationToken)
     {
         return SafeExecute(async () =>
         {
+            if(!ModelState.IsValid)
+            {
+                return ToActionResult( new Error
+                {
+                    Code = ErrorCode.BadRequestError,
+                    Message = "invalid request"
+                });
+            }
             var command = new CreateUrlCommand
             {
                 OriginUrl = request.OriginUrl,

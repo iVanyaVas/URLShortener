@@ -5,6 +5,10 @@ using System.Threading.Tasks;
 
 using MediatR;
 
+using Microsoft.Extensions.Logging;
+
+using Moq;
+
 using Shouldly;
 
 using UrlShorteneer.Contracts.Database;
@@ -27,7 +31,7 @@ public class CreateUrlCommandHandlerUnitTests : IDisposable
     public CreateUrlCommandHandlerUnitTests()
     {
         _dbContext = Helpers.DbContextHelper.CreateTestDb();
-        _handler = new CreateUrlCommandHandler(_dbContext);
+        _handler = new CreateUrlCommandHandler(_dbContext, new Mock<ILogger<CreateUrlCommandHandler>>().Object);
 
     }
 
