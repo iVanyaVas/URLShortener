@@ -55,18 +55,18 @@ public class CreateUrlCommandHandlerUnitTests : IDisposable
         result.Id.ShouldBeGreaterThan(0);
     }
 
-        [Fact]
+    [Fact]
     public async Task HandlerShouldReturnExistRecord()
     {
         //Arrange
         var url = new Url
         {
-          OriginUrl =  "https://www.google.com/",
-          ShortenedUrl = "localhost:5246/S6876"
+            OriginUrl = "https://www.google.com/",
+            ShortenedUrl = "localhost:5246/S6876"
         };
 
-       await _dbContext.AddAsync(url);
-       await _dbContext.SaveChangesAsync();
+        await _dbContext.AddAsync(url);
+        await _dbContext.SaveChangesAsync();
 
         var command = new CreateUrlCommand
         {
@@ -83,7 +83,28 @@ public class CreateUrlCommandHandlerUnitTests : IDisposable
         result.ShortenedUrl.ShouldBe("localhost:5246/S6876");
     }
 
+    [Fact]
+    public async Task HandlerShouldReturnThrowDbUpdateException()
+    {
+        //Arrange
+        var url = new Url
+        {
+            OriginUrl = "https://www.google.com/",
+            ShortenedUrl = "localhost:5246/S6876"
+        };
 
+
+        //Act
+        try
+        {
+            await _dbContext.AddAsync(url);
+            await _dbContext.SaveChangesAsync();
+        }
+        catch (Microsoft.EntityFrameworkCore.DbUpdateException)
+        {
+            //Assert
+        }
+    }
 
     [Fact]
     public async Task HandlerShouldThrowException()

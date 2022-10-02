@@ -31,9 +31,6 @@ public class UrlController : BaseController
     /// <param name="cancellationToken"> Cancellation Token</param>
     /// <returns>Redirect to Origin Url</returns>
     [HttpGet("{id}")]
-    [ProducesResponseType(typeof(string), 302)]
-    [ProducesResponseType(typeof(Error), 404)]
-    [ProducesResponseType(typeof(Error), 500)]
     public Task<IActionResult> GetUrl([FromRoute] int id, CancellationToken cancellationToken)
     {
         return SafeExecute(async () =>

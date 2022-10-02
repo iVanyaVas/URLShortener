@@ -43,30 +43,43 @@ internal class CreateUrlCommandHandler : IRequestHandler<CreateUrlCommand, Creat
         _logger.LogDebug("Excecution start : CreateUrlCommand, with Url = {OriginUrl}", request.OriginUrl);
 
 
-        var urlCheck = await _dbContext.Urls.FirstOrDefaultAsync(u => u.OriginUrl == request.OriginUrl, cancellationToken);
-        
-        if (urlCheck != null)
-        {
-            return new CreateUrlCommandResult
-            {
-                ShortenedUrl = urlCheck.ShortenedUrl,
-                Id = urlCheck.Id
-            };
-        }
+        // var urlCheck = await _dbContext.Urls.FirstOrDefaultAsync(u => u.OriginUrl == request.OriginUrl, cancellationToken);
 
-        if(!ValidationCheck(request.OriginUrl))
+        // if (urlCheck != null)
+        // {
+        //     return new CreateUrlCommandResult
+        //     {
+        //         ShortenedUrl = urlCheck.ShortenedUrl,
+        //         Id = urlCheck.Id
+        //     };
+        // }
+
+        if (!ValidationCheck(request.OriginUrl))
         {
             throw new BadRequestException("Validation error, please use link format");
         }
         var url = new Url
         {
             OriginUrl = request.OriginUrl,
-            ShortenedUrl ="http://localhost:5246" + "/" + GenerateShortUrl(5)
+            ShortenedUrl = "http://localhost:5246" + "/" + GenerateShortUrl(5)
         };
 
-        await _dbContext.AddAsync(url, cancellationToken);
-        await _dbContext.SaveChangesAsync(cancellationToken);
-
+        try
+        {
+            await _dbContext.AddAsync(url, cancellationToken);
+            await _dbContext.SaveChangesAsync(cancellationToken);
+        }
+        catch (Microsoft.EntityFrameworkCore.DbUpdateException)
+        {
+            _logger.LogInformation("Record with origin Url {OriginUrl} already exist, returns this record");
+            
+            var urlCheck = await _dbContext.Urls.FirstOrDefaultAsync(u => u.OriginUrl == request.OriginUrl, cancellationToken);
+            return new CreateUrlCommandResult
+            {
+                ShortenedUrl = urlCheck.ShortenedUrl,
+                Id = urlCheck.Id
+            };
+        }
         _logger.LogInformation("Create new Url with id = {Id}", url.Id);
 
         return new CreateUrlCommandResult
