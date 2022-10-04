@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -43,17 +44,6 @@ internal class CreateUrlCommandHandler : IRequestHandler<CreateUrlCommand, Creat
         _logger.LogDebug("Excecution start : CreateUrlCommand, with Url = {OriginUrl}", request.OriginUrl);
 
 
-        // var urlCheck = await _dbContext.Urls.FirstOrDefaultAsync(u => u.OriginUrl == request.OriginUrl, cancellationToken);
-
-        // if (urlCheck != null)
-        // {
-        //     return new CreateUrlCommandResult
-        //     {
-        //         ShortenedUrl = urlCheck.ShortenedUrl,
-        //         Id = urlCheck.Id
-        //     };
-        // }
-
         if (!ValidationCheck(request.OriginUrl))
         {
             throw new BadRequestException("Validation error, please use link format");
@@ -61,7 +51,7 @@ internal class CreateUrlCommandHandler : IRequestHandler<CreateUrlCommand, Creat
         var url = new Url
         {
             OriginUrl = request.OriginUrl,
-            ShortenedUrl = "http://localhost:5246" + "/" + GenerateShortUrl(5)
+            ShortenedUrl = GenerateShortUrl(5)
         };
 
         try
@@ -72,7 +62,7 @@ internal class CreateUrlCommandHandler : IRequestHandler<CreateUrlCommand, Creat
         catch (Microsoft.EntityFrameworkCore.DbUpdateException)
         {
             _logger.LogInformation("Record with origin Url {OriginUrl} already exist, returns this record");
-            
+
             var urlCheck = await _dbContext.Urls.FirstOrDefaultAsync(u => u.OriginUrl == request.OriginUrl, cancellationToken);
             return new CreateUrlCommandResult
             {
@@ -89,7 +79,6 @@ internal class CreateUrlCommandHandler : IRequestHandler<CreateUrlCommand, Creat
         };
     }
 
-
     private string GenerateShortUrl(int length)
     {
         Random random = new Random();
@@ -99,9 +88,11 @@ internal class CreateUrlCommandHandler : IRequestHandler<CreateUrlCommand, Creat
 
     private bool ValidationCheck(String uriName)
     {
+        if (String.IsNullOrWhiteSpace(uriName)) return false;
         Uri uriResult;
         bool result = Uri.TryCreate(uriName, UriKind.Absolute, out uriResult)
          && (uriResult.Scheme == Uri.UriSchemeHttp || uriResult.Scheme == Uri.UriSchemeHttps);
         return result;
     }
+
 }

@@ -1,4 +1,5 @@
 using System;
+using System.Threading.Tasks;
 
 using Microsoft.EntityFrameworkCore;
 
@@ -24,4 +25,8 @@ public class UrlDbContext : DbContext
         modelBuilder.Entity<Url>().HasIndex(x => x.OriginUrl).IsUnique();
     }
 
+    internal Task AddAsync()
+    {
+        throw new NotImplementedException();
+    }
 }

@@ -1,9 +1,13 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.EntityFrameworkCore;
 
 using MediatR;
+
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
+
+using Moq;
 
 using Shouldly;
 
@@ -14,23 +18,22 @@ using UrlShorteneer.Domain.Queries;
 using UrlShorteneer.UnitTests.Helpers;
 
 using Xunit;
-using Moq;
-using Microsoft.Extensions.Logging;
 
 namespace UrlShorteneer.UnitTests.Queries;
 
-public class UrlQueryHandlerUnitTests : IDisposable
+public class UrlFindQueryHandlerUnitTests : IDisposable
 {
     private readonly UrlDbContext _dbContext;
-    private readonly IRequestHandler<UrlQuery, UrlQueryResult> _handler;
-    public UrlQueryHandlerUnitTests()
+    private readonly IRequestHandler<UrlFindQuery, UrlFindQueryResult> _handler;
+
+    public UrlFindQueryHandlerUnitTests()
     {
-        _dbContext = DbContextHelper.CreateTestDb();
-        _handler = new UrlQueryHandler(_dbContext, new Mock<ILogger<UrlQueryHandler>>().Object);
+        _dbContext = Helpers.DbContextHelper.CreateTestDb();
+        _handler = new UrlFindQueryHandler(_dbContext, new Mock<ILogger<UrlFindQueryHandler>>().Object);
     }
 
     [Fact]
-    public async Task QueryHandleShouldReturnUrl()
+    public async Task UrlFindQueryShouldReturnOriginUrl()
     {
         var dbContext = DbContextHelper.CreateTestDb(_dbContext.Database.GetDbConnection().ConnectionString);
         //Arrange
@@ -43,36 +46,34 @@ public class UrlQueryHandlerUnitTests : IDisposable
         await dbContext.AddAsync(url);
         await dbContext.SaveChangesAsync();
 
-        var query = new UrlQuery
+        var query = new UrlFindQuery
         {
-            Id = url.Id
+            ShortenedUrl = "https://localhost/ABC"
         };
         //Act
         var result = await _handler.Handle(query, CancellationToken.None);
         //Assert
 
         result.ShouldNotBeNull();
-        result.UrlResult.ShouldNotBeNull();
-        result.UrlResult.Id.ShouldBe(url.Id);
-        result.UrlResult.OriginUrl.ShouldBe(url.OriginUrl);
-        result.UrlResult.ShortenedUrl.ShouldBe(url.ShortenedUrl);
-
+        result.Id.ShouldBeGreaterThan(0);
+        result.OriginUrl.ShouldNotBeNullOrEmpty();
     }
 
     [Fact]
-    public async Task QueryShouldThrowException()
+    public async Task UrlFindQueryShouldThrowException()
     {
+        var dbContext = DbContextHelper.CreateTestDb(_dbContext.Database.GetDbConnection().ConnectionString);
         //Arrange
-        var urlId = -1;
-        var query = new UrlQuery
+        var query = new UrlFindQuery
         {
-            Id = urlId
+            ShortenedUrl = "https://localhost/ABC"
         };
         //Act
         try
         {
-            await _handler.Handle(query, CancellationToken.None);
+            var result = await _handler.Handle(query, CancellationToken.None);
         }
+
         catch (NotFoundException nf)
         {
             //Assert

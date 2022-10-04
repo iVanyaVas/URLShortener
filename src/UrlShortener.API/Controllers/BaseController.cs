@@ -38,6 +38,16 @@ public class BaseController : ControllerBase
 
             return ToActionResult(response);
         }
+        catch(BadRequestException br)
+        {
+            _logger.LogError(br,"BadRequestException Raised");
+            var response = new Error
+            {
+                Code = ErrorCode.BadRequestError,
+                Message = br.Message
+            };
+            return ToActionResult(response);
+        }
         catch (InvalidOperationException ioe) when (ioe.InnerException is NpgsqlException)
         {
              _logger.LogError(ioe, "Db exception raised");

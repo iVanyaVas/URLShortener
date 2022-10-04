@@ -25,13 +25,13 @@ public class UrlController : BaseController
     }
 
     /// <summary>
-    /// Returns the redirect to the origin site by id
+    /// Returns the redirect to the origin url by id acess
     /// </summary>
     /// <param name="id"> Url id</param>
     /// <param name="cancellationToken"> Cancellation Token</param>
-    /// <returns>Redirect to Origin Url</returns>
-    [HttpGet("{id}")]
-    public Task<IActionResult> GetUrl([FromRoute] int id, CancellationToken cancellationToken)
+    /// <returns>Origin URL</returns>
+    [HttpGet("{id:int}")]
+    public Task<IActionResult> GetUrlById([FromRoute] int id, CancellationToken cancellationToken)
     {
         return SafeExecute(async () =>
          {
@@ -44,6 +44,28 @@ public class UrlController : BaseController
              return Redirect(result.UrlResult.OriginUrl);
          }, cancellationToken);
 
+
+    }
+
+    /// <summary>
+    /// Returns redirect to the origin url by short link access
+    /// </summary>
+    /// <param name="shortenedUrl"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns>Origin URL</returns>
+    [HttpGet("{shortenedUrl:minlength(4)}")]
+    public Task<IActionResult> GetUrl([FromRoute] string shortenedUrl, CancellationToken cancellationToken)
+    {
+        return SafeExecute(async () =>
+         {
+             var query = new UrlFindQuery
+             {
+                 ShortenedUrl = shortenedUrl
+             };
+             var result = await _mediator.Send(query, cancellationToken);
+
+             return Redirect(result.OriginUrl);
+         }, cancellationToken);
 
     }
 
@@ -78,7 +100,7 @@ public class UrlController : BaseController
                 ShortenedUrl = result.ShortenedUrl
             };
 
-            return Created($"http://localhost:5246/api/url{result.Id}", response);
+            return Created($"http://localhost:5246/api/url/{result.ShortenedUrl}", response);
         }, cancellationToken);
     }
 }

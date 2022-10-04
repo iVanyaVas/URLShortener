@@ -84,7 +84,7 @@ public class CreateUrlCommandHandlerUnitTests : IDisposable
     }
 
     [Fact]
-    public async Task HandlerShouldReturnThrowDbUpdateException()
+    public async Task EFShouldThrowDbUpdateException()
     {
         //Arrange
         var url = new Url
@@ -92,7 +92,6 @@ public class CreateUrlCommandHandlerUnitTests : IDisposable
             OriginUrl = "https://www.google.com/",
             ShortenedUrl = "localhost:5246/S6876"
         };
-
 
         //Act
         try
@@ -105,6 +104,79 @@ public class CreateUrlCommandHandlerUnitTests : IDisposable
             //Assert
         }
     }
+
+    [Fact]
+    public async Task EFShouldThrowDbUpdateExceptionForAddRange()
+    {
+        //Arrange
+        var url1 = new Url
+        {
+            OriginUrl = "https://www.google.com/",
+            ShortenedUrl = "localhost:5246/S6876"
+        };
+        var url2 = new Url
+        {
+            OriginUrl = "https://www.google.com/",
+            ShortenedUrl = "localhost:5246/ABCDE"
+        };
+        var url3 = new Url
+        {
+            OriginUrl = "https://vsetop.org/",
+            ShortenedUrl = "localhost:5246/SAC43"
+        };
+
+        //Act
+        try
+        {
+            await _dbContext.AddRangeAsync(url1, url2, url3);
+            await _dbContext.SaveChangesAsync();
+        }
+        catch (Microsoft.EntityFrameworkCore.DbUpdateException)
+        {
+            //Assert
+        }
+    }
+
+
+    [Fact]
+    public async Task HandlerShouldReturnExistRecordForAddRange()
+    {
+        //Arrange
+        var url1 = new Url
+        {
+            OriginUrl = "https://www.google.com/",
+            ShortenedUrl = "localhost:5246/S6876"
+        };
+        var url2 = new Url
+        {
+            OriginUrl = "https://www.clickminded.com/",
+            ShortenedUrl = "localhost:5246/ABCDE"
+        };
+        var url3 = new Url
+        {
+            OriginUrl = "https://vsetop.org/",
+            ShortenedUrl = "localhost:5246/SAC43"
+        };
+
+        var command = new CreateUrlCommand
+        {
+            OriginUrl = url1.OriginUrl
+        };
+
+        await _dbContext.AddRangeAsync(url1, url2, url3);
+        await _dbContext.SaveChangesAsync();
+        //Act
+
+        var result = await _handler.Handle(command, CancellationToken.None);
+
+        //Assert
+        result.ShouldNotBeNull();
+        result.Id.ShouldBeGreaterThan(0);
+        result.ShortenedUrl.ShouldNotBeNullOrEmpty();
+        result.ShortenedUrl.ShouldBe("localhost:5246/S6876");
+
+    }
+
 
     [Fact]
     public async Task HandlerShouldThrowException()
@@ -121,9 +193,10 @@ public class CreateUrlCommandHandlerUnitTests : IDisposable
         {
             var result = await _handler.Handle(command, CancellationToken.None);
         }
-        catch (BadRequestException br) when (br.ErrorCode == Contracts.Http.ErrorCode.BadRequestError)
+        catch (BadRequestException br)
         {
             //Assert
+            br.ErrorCode.ShouldBe(Contracts.Http.ErrorCode.BadRequestError);
         }
 
     }
@@ -143,9 +216,10 @@ public class CreateUrlCommandHandlerUnitTests : IDisposable
         {
             var result = await _handler.Handle(command, CancellationToken.None);
         }
-        catch (BadRequestException br) when (br.ErrorCode == Contracts.Http.ErrorCode.BadRequestError)
+        catch (BadRequestException br)
         {
             //Assert
+            br.ErrorCode.ShouldBe(Contracts.Http.ErrorCode.BadRequestError);
         }
 
     }
